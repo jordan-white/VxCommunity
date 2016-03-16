@@ -10,6 +10,12 @@
 # Date - 01.03.2016
 # Version - 0.0.1
 
+# Instructions:
+#
+# chmod +x thuginstallation.sh
+# sudo ./thuginstallation.sh
+#
+
 # * INIT
 # * GOOGLEV8
 # * REQUIREMENTS
