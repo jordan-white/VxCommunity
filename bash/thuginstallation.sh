@@ -97,6 +97,8 @@ INIT() {
 
 	# Download Thug
 
+	test -d /opt/thug && rm -rf /opt/thug # If a Thug folder already exists, then delete it
+
 	echo -e "\nDownloading Thug..." && cd /opt && git clone https://github.com/buffer/thug.git >> $DIR/bootstrap.log 2>&1 && echo -e "\nSuccessfully downloaded Thug!" || {
 
 		echo "Failed to download Thug! Exiting!"
@@ -110,23 +112,15 @@ GOOGLEV8() {
 
 	# Download Google V8
 
-	echo -e "\nDownloading Google V8..." && cd /tmp && svn checkout http://v8.googlecode.com/svn/trunk/ v8 >> $DIR/bootstrap.log && svn checkout http://pyv8.googlecode.com/svn/trunk/ pyv8 >> $DIR/bootstrap.log && echo -e "\nSuccessfully downloaded Google V8!" || {
+	echo -e "\nDownloading Google PyV8..." && cd /tmp && git clone https://github.com/buffer/pyv8.git >> $DIR/bootstrap.log && echo -e "\nSuccessfully downloaded PyV8!" || {
 
 		echo "Failed to download Google V8! Exiting!"
 		exit 1
 	}
 
-	# Patch Google V8
-
-	cp /opt/thug/patches/PyV8-patch1.diff . && patch -p0 < PyV8-patch1.diff >> $DIR/bootstrap.log 2>&1 && export V8_HOME=/tmp/v8 && echo -e "\nSuccessfully patched Google V8!" || {
-
-		echo "Failed to patch Google V8! Exiting!"
-		exit 1
-	}
-
 	# Install Google V8
 
-	echo -e "\nInstalling Google V8..." && cd pyv8 && python setup.py build >> $DIR/bootstrap.log 2>&1 && python setup.py install >> $DIR/bootstrap.log 2>&1 && echo -e "\nSuccessfully installed Google V8!" || {
+	echo -e "\nInstalling Google V8 and PyV8... (This might take some time)" && cd pyv8 && python setup.py build > /dev/null 2>> $DIR/bootstrap.log && sudo python setup.py install > /dev/null 2>> $DIR/bootstrap.log && echo -e "\nSuccessfully installed Google V8 and PyV8!" || {
 
 		echo "Failed to install Google V8! Exiting!"
 		exit 1
@@ -332,13 +326,11 @@ YARA () {
 
 }
 
-# Test Thug
-
 TEST() {
 
 	# Test Thug
 
-	python /opt/thug/src/thug.py -h >> $DIR/bootstrap.log && echo -e "\nSuccessfully installed Thug!" && exit 0
+	echo -e "\nTesting Thug..." && python /opt/thug/src/thug.py -h >> $DIR/bootstrap.log 2>&1 && echo -e "\nThug is working." && echo -e "\nSuccessfully installed Thug!" && exit 0
 
 }
 
