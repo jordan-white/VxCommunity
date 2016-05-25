@@ -87,14 +87,29 @@ INIT() {
 	echo -e "\n-----------THUG INSTALLATION-----------" >> $DIR/bootstrap.log 
 	exec &> >(tee -a "$DIR/bootstrap.log")
 
+	# Update apt
+	
+	echo -e "\nUpdating apt..." && apt-get -qq update || {
+		echo "Failed to update. Exiting!"
+		exit 1
+	}
+	
 	# Install Thug dependencies 
 
-	echo -e "\nInstalling Thug dependencies..." && apt-get -qq update && apt-get install -qq build-essential python-dev python-setuptools libboost-python-dev libboost-all-dev python-socksipy subversion python-pip libxml2-dev libxslt-dev git libtool autoconf >> $DIR/bootstrap.log 2>&1 && echo -e "\nSuccessfully installed Thug dependencies!" || {
+	echo -e "\nInstalling python-socksipy..." && apt-get install -qq python-socksipy || {
+	
+		echo -e "\nFailed to install, trying python-socks now ..." && apt-get install -qq python-socks || {
+			echo "Fatal error: failed to unpack the archive using 7zip. Exiting ..."
+			exit 1
+		}
+	}
+
+	echo -e "\nInstalling Thug dependencies..." && apt-get install -qq build-essential python-dev python-setuptools libboost-python-dev libboost-all-dev subversion python-pip libxml2-dev libxslt-dev git libtool autoconf >> $DIR/bootstrap.log 2>&1 && echo -e "\nSuccessfully installed Thug dependencies!" || {
 
 		echo "Failed to install Thug dependencies! Exiting!"
 		exit 1
 	}
-
+	
 	# Download Thug
 
 	test -d /opt/thug && rm -rf /opt/thug # If a Thug folder already exists, then delete it
