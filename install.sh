@@ -167,6 +167,10 @@ conf() {
     echo -e "\nStarting install.sh... \nTimestamp:" >> "$logFile" && date >> "$logFile"
     exec &> >(tee -a "$logFile")
 
+    # Make sure .ssh and known_hosts exist
+    test -d ~/.ssh/ || mkdir ~/.ssh
+    test -f ~/.ssh/known_hosts || touch ~/.ssh/known_hosts
+
     # Decrypted authentication key file name
     decryptedKeyFile=""$installDir"/vxinstaller.key"
 
@@ -209,7 +213,7 @@ checks() {
         success && echo "Git is working"
     else
         failure
-        echo "Fatal error: Git isn't working"
+        echo "Fatal error: Git isn't working. Make sure Git is installed"
         echo "See $logFile for more information. Exiting..."
         exit 1
     fi
@@ -225,7 +229,7 @@ checks() {
         echo "Fatal error: authentication key type is not correct: $fileTypeNow"
         echo "Please contact Payload-Security. Exiting..."
         exit 1
-fi
+    fi
 
 }
 
