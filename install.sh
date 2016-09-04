@@ -167,7 +167,10 @@ conf() {
     echo -e "\nStarting install.sh... \nTimestamp:" >> "$logFile" && date >> "$logFile"
     exec &> >(tee -a "$logFile")
 
-    # Make sure .ssh and known_hosts exist
+    # Export user who executed the script
+    export installUser=$(whoami)
+
+    # Make sure .ssh dir and known_hosts file exist
     test -d ~/.ssh/ || mkdir ~/.ssh
     test -f ~/.ssh/known_hosts || touch ~/.ssh/known_hosts
 
@@ -186,6 +189,9 @@ conf() {
     # Get authentication key type
     fileTypeNow=$(curl -s -S -I "$authKeyURL" | grep "Content-Type:" | awk {'print $2'})
     fileTypeNow="$(echo -e "${fileTypeNow}" | tr -d '[[:space:]]')"
+
+    # Update NTP
+    ntpdate -u ntp.ubuntu.com >> "$logFile" 2>&1
 }
 
 # Run mandatory checks 
@@ -309,7 +315,28 @@ main() {
     fi
 
     # Initialize VxBootstrapUI 
-    echo "Initializing VxBootstrapUI [need root rights]..." && cd "$installDir"/VxBootstrapUI/scripts && sudo ./init.sh
+    echo -e "Initializing VxBootstrapUI [need root rights]...\n"
+
+    # Promt for user password until a correct password has been provided
+    while [[ "$userId" != 0 ]]; do
+
+        echo -n "[sudo] password for $installUser": 
+        read -s installUserPassword
+
+        # Check if given password is correct 
+        userId=$(echo "$installUserPassword" | sudo -S id -u 2> /dev/null)
+
+        if [ "$userId" = 0 ]; then 
+            export $installUserPassword
+            echo 
+        else
+            echo -e "\nSorry, try again."
+        fi
+
+    done
+
+    # Execute VxBootstrapUI installer
+    cd "$installDir"/VxBootstrapUI/scripts && echo "$installUserPassword" | sudo -S ./init.sh
 
 }
 
