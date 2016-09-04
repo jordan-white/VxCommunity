@@ -225,7 +225,7 @@ checks() {
     fi
 
     # Make sure authentication key type is correct
-    if [ $fileTypeNow == $correctFileType ]; then
+    if [ "$fileTypeNow" == "$correctFileType" ]; then
 
         success
         echo -e "Authentication key type is correct: $fileTypeNow\n"
@@ -324,7 +324,7 @@ main() {
         read -s installUserPassword
 
         # Check if given password is correct 
-        userId=$(echo "$installUserPassword" | sudo -S id -u 2> /dev/null)
+        userId=$(echo "$installUserPassword" | sudo -k -S id -u 2> /dev/null)
 
         if [ "$userId" = 0 ]; then 
             export $installUserPassword
@@ -335,8 +335,11 @@ main() {
 
     done
 
+    # Add init.sh to sudoers
+    echo "$installUserPassword" | sudo -S bash -c "echo \"$installUser ALL=(ALL) NOPASSWD:SETENV: $installDir/VxBootstrapUI/scripts/init.sh\" >> /etc/sudoers"
+
     # Execute VxBootstrapUI installer
-    cd "$installDir"/VxBootstrapUI/scripts && echo "$installUserPassword" | sudo -S ./init.sh
+    cd "$installDir"/VxBootstrapUI/scripts && sudo installUser="$installUser" installUserPassword="$installUserPassword" ./init.sh
 
 }
 
