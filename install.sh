@@ -324,7 +324,7 @@ main() {
         read -s installUserPassword
 
         # Check if given password is correct 
-        userId=$(echo "$installUserPassword" | sudo -k -S id -u 2> /dev/null)
+        userId=$(echo "$installUserPassword" | sudo -S id -u 2> /dev/null)
 
         if [ "$userId" = 0 ]; then 
             export $installUserPassword
@@ -339,7 +339,7 @@ main() {
     echo "$installUserPassword" | sudo -S bash -c "echo \"$installUser ALL=(ALL) NOPASSWD:SETENV: $installDir/VxBootstrapUI/scripts/init.sh\" >> /etc/sudoers"
 
     # Execute VxBootstrapUI installer
-    cd "$installDir"/VxBootstrapUI/scripts && sudo installUser="$installUser" installUserPassword="$installUserPassword" ./init.sh
+    cd "$installDir"/VxBootstrapUI/scripts && sudo installUser="$installUser" installUserPassword="$installUserPassword" termColumns="$termColumns" ./init.sh
 
 }
 
