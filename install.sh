@@ -315,7 +315,7 @@ main() {
     fi
 
     # Initialize VxBootstrapUI 
-    echo -e "Initializing VxBootstrapUI [need root rights]...\n"
+    echo -e "Initializing VxBootstrapUI [need root rights]...\n" && sudo -k
 
     # Promt for user password until a correct password has been provided
     while [[ "$userId" != 0 ]]; do
