@@ -51,22 +51,22 @@ fi
 
 usage() {
 
-	echo "Copyright (C) 2016 Payload Security"
-	echo "Version: $version"
-	echo -e "\nDescription:"
-	echo "VxStream Sandbox installer for automated installation of VxStream Sandbox."
-	echo "This scipt will download necessary resources and continue with the installation of VxStream Sandbox."
-	echo -e "\nUsage:"
-	echo -e  " $0 commands [parameters]\n"
-	echo "Commands:"
-	echo " --password          [Required] Password used for downloading resources"
-	echo -e "\nParameters:"
-	echo " -h, --help          Print this help message"
-	echo " -v, --verbose       Print verbose messages to stdout (debugging mode)"
-	echo -e "\nPlease use single quotes around command line arguments.\n"
-	echo "Example:" 
-	echo -e " $0 --password 'insertpasswordhere'\n"
-	exit 1
+    echo "Copyright (C) 2016 Payload Security"
+    echo "Version: $version"
+    echo -e "\nDescription:"
+    echo "VxStream Sandbox installer for automated installation of VxStream Sandbox."
+    echo "This scipt will download necessary resources and continue with the installation of VxStream Sandbox."
+    echo -e "\nUsage:"
+    echo -e  " $0 commands [parameters]\n"
+    echo "Commands:"
+    echo " --password          [Required] Password used for downloading resources"
+    echo -e "\nParameters:"
+    echo " -h, --help          Print this help message"
+    echo " -v, --verbose       Print verbose messages to stdout (debugging mode)"
+    echo -e "\nPlease use single quotes around command line arguments.\n"
+    echo "Example:" 
+    echo -e " $0 --password 'insertpasswordhere'\n"
+    exit 1
 
 }
 
@@ -116,9 +116,9 @@ done
 
 if [ $OPTIND -eq 1 ]; then
 
-	echo "No valid arguments were passed. Exiting..." >&2
-	echo "Try '$0 --help' for more information" >&2
-	exit 1
+    echo "No valid arguments were passed. Exiting..." >&2
+    echo "Try '$0 --help' for more information" >&2
+    exit 1
 
 fi
 
@@ -126,9 +126,9 @@ fi
 
 if [[ "$#" -lt 2 || "$#" -gt 3 ]]; then
 
-	echo "Invalid number of arguments..."
-	echo "Try '$0 --help' for more information" >&2
-	exit 1
+    echo "Invalid number of arguments..."
+    echo "Try '$0 --help' for more information" >&2
+    exit 1
 
 fi
 
@@ -313,6 +313,13 @@ main() {
         echo "See $logFile for more information. Exiting..."
         exit 1
     fi
+    
+    # Set write permissions to the configuration file (used later by the UI)
+    echo "Adding write permissions to the bootstrap configuration file..." && chmod 666 "$installDir"/VxBootstrap/bootstrap.cfg > /dev/null 2>> "$logFile" || {
+        failure
+        echo "Fatal error: failed to set correct permissions for "$installDir"/VxBootstrap/bootstrap.cfg. Exiting..."
+        exit 1
+    }
 
     # Initialize VxBootstrapUI 
     echo -e "Initializing VxBootstrapUI [need root rights]...\n" && sudo -k
