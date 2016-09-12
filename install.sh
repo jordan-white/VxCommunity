@@ -315,7 +315,7 @@ main() {
     fi
     
     # Set write permissions to the configuration file (used later by the UI)
-    echo "Adding write permissions to the bootstrap configuration file..." && chmod 666 "$installDir"/VxBootstrap/bootstrap.cfg > /dev/null 2>> "$logFile" || {
+    echo "Adding write permissions to the bootstrap configuration file..." && chmod 666 "$installDir"/VxBootstrap/bootstrap.cfg > /dev/null 2>> "$logFile" && success && echo -e "Successfully changed permissions\n" || {
         failure
         echo "Fatal error: failed to set correct permissions for "$installDir"/VxBootstrap/bootstrap.cfg. Exiting..."
         exit 1
@@ -334,10 +334,9 @@ main() {
         userId=$(echo "$installUserPassword" | sudo -S id -u 2> /dev/null)
 
         if [ "$userId" = 0 ]; then 
-            export $installUserPassword
-            echo 
+            declare -x installUserPassword=$installUserPassword
         else
-            echo -e "\nSorry, try again."
+            echo -e "\nSorry, the provided password is incorrect. Please try again!"
         fi
 
     done
