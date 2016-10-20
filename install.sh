@@ -247,7 +247,7 @@ main() {
     echo -e "----------------------- Main ----------------------\n"
 
     # Download authentication key
-    curl -s -S "$authKeyURL" -o "$installDir"/vxinstallerkey.gpg 2>> "$logFile" && success && echo "Successfully downloaded authentication key" || {
+    curl -A "VxStream Sandbox" -s -S "$authKeyURL" -o "$installDir"/vxinstallerkey.gpg 2>> "$logFile" && success && echo "Successfully downloaded authentication key" || {
 
         failure
         echo "Fatal error: failed to download authentication key"
