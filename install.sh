@@ -224,18 +224,19 @@ checks() {
         exit 1
     fi
 
+    #TODO: removed temporarily
     # Make sure authentication key type is correct
-    if [ "$fileTypeNow" == "$correctFileType" ]; then
+    #if [ "$fileTypeNow" == "$correctFileType" ]; then
 
-        success
-        echo -e "Authentication key type is correct: $fileTypeNow\n"
-    else
+    #    success
+    #    echo -e "Authentication key type is correct: $fileTypeNow\n"
+    #else
 
-        failure
-        echo "Fatal error: authentication key type is not correct: $fileTypeNow"
-        echo "Please contact Payload-Security. Exiting..."
-        exit 1
-    fi
+    #    failure
+    #    echo "Fatal error: authentication key type is not correct: $fileTypeNow"
+    #    echo "Please contact Payload-Security. Exiting..."
+    #    exit 1
+    #fi
 
 }
 
