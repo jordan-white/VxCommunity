@@ -187,11 +187,12 @@ conf() {
     correctFileType="$(echo -e "application/octet-stream" | tr -d '[[:space:]]')"
 
     # Get authentication key type
-    fileTypeNow=$(curl -s -S -I "$authKeyURL" | grep "Content-Type:" | awk {'print $2'})
+    fileTypeNow=$(curl -A "VxStream Sandbox" -s -S -I "$authKeyURL" 2>> "$logFile" | grep "Content-Type:" | awk {'print $2'})
     fileTypeNow="$(echo -e "${fileTypeNow}" | tr -d '[[:space:]]')"
 
-    # Update NTP
-    ntpdate -u ntp.ubuntu.com >> "$logFile" 2>&1
+    # Get the status code of curl
+    curlStatusCode=$(curl -A "VxStream Sandbox" -ISs "$authKeyURL" 2>> "$logFile" | head -n 1 | cut -d$' ' -f2)
+
 }
 
 # Run mandatory checks 
@@ -216,7 +217,7 @@ checks() {
     git --version >> "$logFile" 2>&1
 
     if [ $? -eq 0 ]; then
-        success && echo "Git is working"
+        success && echo -e "Git is working\n"
     else
         failure
         echo "Fatal error: Git isn't working. Make sure Git is installed"
@@ -224,19 +225,33 @@ checks() {
         exit 1
     fi
 
-    #TODO: removed temporarily
+    # If curl status code for downloading authentication key was not 200, then quit
+
+    if [ "$curlStatusCode" == "200" ]; then
+
+        success
+        echo "Authentication key can be fetched from remote server"
+    else
+
+        failure
+        echo "Fatal error: authentication key can not be fetched from remote server: $authKeyURL"
+        echo "Curl status code: $curlStatusCode"
+        echo "Please contact Payload-Security. Exiting..."
+        exit 1
+    fi
+
     # Make sure authentication key type is correct
-    #if [ "$fileTypeNow" == "$correctFileType" ]; then
+    if [ "$fileTypeNow" == "$correctFileType" ]; then
 
-    #    success
-    #    echo -e "Authentication key type is correct: $fileTypeNow\n"
-    #else
+        success
+        echo -e "Authentication key type is correct: $fileTypeNow\n"
+    else
 
-    #    failure
-    #    echo "Fatal error: authentication key type is not correct: $fileTypeNow"
-    #    echo "Please contact Payload-Security. Exiting..."
-    #    exit 1
-    #fi
+        failure
+        echo "Fatal error: authentication key type is not correct: $fileTypeNow"
+        echo "Please contact Payload-Security. Exiting..."
+        exit 1
+    fi
 
 }
 
