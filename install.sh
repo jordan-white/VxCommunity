@@ -236,7 +236,7 @@ checks() {
         failure
         echo "Fatal error: authentication key can not be fetched from remote server: $authKeyURL"
         echo "Curl status code: $curlStatusCode"
-        echo "Please contact Payload-Security. Exiting..."
+        echo "Please contact Payload Security. Exiting..."
         exit 1
     fi
 
@@ -249,7 +249,7 @@ checks() {
 
         failure
         echo "Fatal error: authentication key type is not correct: $fileTypeNow"
-        echo "Please contact Payload-Security. Exiting..."
+        echo "Please contact Payload Security. Exiting..."
         exit 1
     fi
 
