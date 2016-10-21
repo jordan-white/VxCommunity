@@ -187,11 +187,11 @@ conf() {
     correctFileType="$(echo -e "application/octet-stream" | tr -d '[[:space:]]')"
 
     # Get authentication key type
-    fileTypeNow=$(curl -A "VxStream Sandbox" -s -S -I "$authKeyURL" 2>> "$logFile" | grep "Content-Type:" | awk {'print $2'})
+    fileTypeNow=$(curl -A "VxStream Sandbox" -ISsk "$authKeyURL" 2>> "$logFile" | grep "Content-Type:" | awk {'print $2'})
     fileTypeNow="$(echo -e "${fileTypeNow}" | tr -d '[[:space:]]')"
 
     # Get the status code of curl
-    curlStatusCode=$(curl -A "VxStream Sandbox" -ISs "$authKeyURL" 2>> "$logFile" | head -n 1 | cut -d$' ' -f2)
+    curlStatusCode=$(curl -A "VxStream Sandbox" -ISsk "$authKeyURL" 2>> "$logFile" | head -n 1 | cut -d$' ' -f2)
 
 }
 
