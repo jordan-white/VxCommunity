@@ -145,7 +145,7 @@ cleanHost() {
         # Cleanup the installation directory 
         failure
         echo "Fatal error caught. Cleaning up ..."
-        cd "$installDir" && find -not -name '*log*' | tail -n +2 | xargs rm -rf
+        cd "$installDir" && find -not -name '*log*' | tail -n +2 | xargs rm -f
     fi
 }
 
