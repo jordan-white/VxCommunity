@@ -319,10 +319,10 @@ main() {
     fi
 
     # Download VxBootstrap 
-    echo "Downloading VxBootstrap..." && ssh-agent bash -c "ssh-add "$installDir"/authKeyVxBootstrap >> "$logFile" 2>&1 ; git clone git@github.com:PayloadSecurity/VxBootstrap.git >> "$logFile" 2>&1"
+    echo "Downloading VxBootstrap..." && ssh-agent bash -c "ssh-add "$installDir"/authKeyVxBootstrap >> "$logFile" 2>&1 ; git clone git@github.com:PayloadSecurity/VxBootstrap.git >> "$logFile" 2>&1 && ln -s "$installDir"/VxBootstrap $HOME"
 
     if [ $? -eq 0 ]; then
-        success && echo -e "Successfully downloaded VxBootstrap\n"
+        success && echo -e "Successfully downloaded VxBootstrap and created a soft link of it to: $HOME/VxBootstrap\n"
     else
         failure
         echo "Fatal error: Was not able to download VxBootstrap."
