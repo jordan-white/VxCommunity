@@ -319,16 +319,18 @@ main() {
     fi
 
     # Download VxBootstrap 
-    echo "Downloading VxBootstrap..." && ssh-agent bash -c "ssh-add "$installDir"/authKeyVxBootstrap >> "$logFile" 2>&1 ; git clone git@github.com:PayloadSecurity/VxBootstrap.git >> "$logFile" 2>&1 && ln -s "$installDir"/VxBootstrap $HOME"
+    echo "Downloading VxBootstrap..." && ssh-agent bash -c "ssh-add "$installDir"/authKeyVxBootstrap >> "$logFile" 2>&1 ; git clone git@github.com:PayloadSecurity/VxBootstrap.git >> "$logFile" 2>&1"
 
     if [ $? -eq 0 ]; then
-        success && echo -e "Successfully downloaded VxBootstrap and created a soft link of it to: $HOME/VxBootstrap\n"
+        success && echo -e "Successfully downloaded VxBootstrap\n"
     else
         failure
         echo "Fatal error: Was not able to download VxBootstrap."
         echo "See $logFile for more information. Exiting..."
         exit 1
     fi
+    
+    ln -s "$installDir"/VxBootstrap $HOME
     
     # Set write permissions to the configuration file (used later by the UI)
     echo "Adding write permissions to the bootstrap configuration file..." && chmod 666 "$installDir"/VxBootstrap/bootstrap.cfg > /dev/null 2>> "$logFile" && success && echo -e "Successfully changed permissions\n" || {
