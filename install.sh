@@ -330,7 +330,18 @@ main() {
         exit 1
     fi
     
-    ln -s "$installDir"/VxBootstrap $HOME
+    # Create a soft link of VxBootstrap to user home dir if it does not exist yet
+    test -d $HOME/VxBootstrap
+
+    if [ $? -ne 0 ]; then
+
+        ln -s "$installDir"/VxBootstrap $HOME >> "$logFile" 2>&1 && success && echo "Successfully created a softlink of VxBootstrap to $HOME" || {
+
+            failure
+            echo "Failed to create a softlink of VxBootstrap to $HOME"
+            echo "See $logFile for more information"
+        }
+    fi
     
     # Set write permissions to the configuration file (used later by the UI)
     echo "Adding write permissions to the bootstrap configuration file..." && chmod 666 "$installDir"/VxBootstrap/bootstrap.cfg > /dev/null 2>> "$logFile" && success && echo -e "Successfully changed permissions\n" || {
