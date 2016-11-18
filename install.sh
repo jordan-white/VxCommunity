@@ -330,7 +330,18 @@ main() {
         exit 1
     fi
     
-    ln -s "$installDir"/VxBootstrap $HOME
+    # Create a soft link of VxBootstrap to user home dir if it does not exist yet
+    test -d $HOME/VxBootstrap
+
+    if [ $? -ne 0 ]; then
+
+        ln -s "$installDir"/VxBootstrap $HOME >> "$logFile" 2>&1 && success && echo "Successfully created a softlink of VxBootstrap to $HOME" || {
+
+            failure
+            echo "Failed to create a softlink of VxBootstrap to $HOME"
+            echo "See $logFile for more information"
+        }
+    fi
     
     # Set write permissions to the configuration file (used later by the UI)
     echo "Adding write permissions to the bootstrap configuration file..." && chmod 666 "$installDir"/VxBootstrap/bootstrap.cfg > /dev/null 2>> "$logFile" && success && echo -e "Successfully changed permissions\n" || {
@@ -359,8 +370,8 @@ main() {
 
     done
 
-    # Add init.sh to sudoers
-    echo "$installUserPassword" | sudo -S bash -c "echo \"$installUser ALL=(ALL) NOPASSWD:SETENV: $installDir/VxBootstrapUI/scripts/init.sh\" >> /etc/sudoers"
+    # Add init.sh and bootstrap.sh to sudoers
+    echo "$installUserPassword" | sudo -S bash -c "echo \"$installUser ALL=(ALL) NOPASSWD:SETENV: $installDir/VxBootstrapUI/scripts/init.sh, $installDir/VxBootstrap/bootstrap.sh\" >> /etc/sudoers"
 
     # Execute VxBootstrapUI installer
     cd "$installDir"/VxBootstrapUI/scripts && sudo installUser="$installUser" installUserPassword="$installUserPassword" termColumns="$termColumns" ./init.sh
