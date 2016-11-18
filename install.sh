@@ -370,8 +370,8 @@ main() {
 
     done
 
-    # Add init.sh to sudoers
-    echo "$installUserPassword" | sudo -S bash -c "echo \"$installUser ALL=(ALL) NOPASSWD:SETENV: $installDir/VxBootstrapUI/scripts/init.sh\" >> /etc/sudoers"
+    # Add init.sh and bootstrap.sh to sudoers
+    echo "$installUserPassword" | sudo -S bash -c "echo \"$installUser ALL=(ALL) NOPASSWD:SETENV: $installDir/VxBootstrapUI/scripts/init.sh, $installDir/VxBootstrap/bootstrap.sh\" >> /etc/sudoers"
 
     # Execute VxBootstrapUI installer
     cd "$installDir"/VxBootstrapUI/scripts && sudo installUser="$installUser" installUserPassword="$installUserPassword" termColumns="$termColumns" ./init.sh
