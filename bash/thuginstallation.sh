@@ -173,7 +173,7 @@ REQUIREMENTS() {
 
 	# Install libemu
 
-	cd /tmp && git clone git://github.com/buffer/libemu.git >> $DIR/bootstrap.log 2>&1 && cd libemu && autoreconf -v -i >> $DIR/bootstrap.log 2>&1 && ./configure --prefix=/opt/libemu >> $DIR/bootstrap.log 2>&1 && make install >> $DIR/bootstrap.log 2>&1 && echo -e "\nSuccessfully installed libemu!" || {
+	cd /tmp && git clone git://github.com/buffer/libemu.git >> $DIR/bootstrap.log 2>&1 && cd libemu && autoreconf -v -i >> $DIR/bootstrap.log 2>&1 && ./configure --prefix=/opt/libemu >> $DIR/bootstrap.log 2>&1 && sudo make install >> $DIR/bootstrap.log 2>&1 && echo -e "\nSuccessfully installed libemu!" || {
 
 		echo "Failed to install libemu!"
 		exit 1
