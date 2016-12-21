@@ -60,6 +60,7 @@ usage() {
     echo -e  " $0 commands [parameters]\n"
     echo "Commands:"
     echo " --password          [Required] Password used for downloading resources"
+    echo " --bypass-ssh        [Optional] Will download resources from Github over HTTPS instead of SSH. Use this only if downloading VxBootstrap or VxBootstrapUI fails"
     echo -e "\nParameters:"
     echo " -h, --help          Print this help message"
     echo " -v, --verbose       Print verbose messages to stdout (debugging mode)"
@@ -79,6 +80,9 @@ while getopts "$args" optchar; do
             case "${OPTARG}" in
                 password)
                     gpgPassword="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+                    ;;
+                bypass-ssh)
+                    byPassSSH=true
                     ;;
                 help)
                     usage
@@ -124,7 +128,7 @@ fi
 
 # Check for correct number of arguments 
 
-if [[ "$#" -lt 2 || "$#" -gt 3 ]]; then
+if [[ "$#" -lt 2 || "$#" -gt 4 ]]; then
 
     echo "Invalid number of arguments..."
     echo "Try '$0 --help' for more information" >&2
@@ -175,6 +179,13 @@ conf() {
     # Make sure .ssh dir and known_hosts file exist
     test -d ~/.ssh/ || mkdir ~/.ssh
     test -f ~/.ssh/known_hosts || touch ~/.ssh/known_hosts
+
+    # Download resources from Github over HTTPS instead of SSH
+    if [ "$byPassSSH" == true ]; then
+
+        git config --global url."https://".insteadOf git://
+
+    fi
 
     # Decrypted authentication key file name
     decryptedKeyFile=""$installDir"/vxinstaller.key"
