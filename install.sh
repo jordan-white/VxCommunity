@@ -271,7 +271,7 @@ checks() {
 
     if [ "$codeName" == "xenial" ]; then
 
-        systemUptime=$(uptime -p | awk {'print $2'} | xargs)
+        systemUptime=$(cat /proc/uptime | awk '{r = sprintf("%.0f",$1/60); print r}')
 
         if [ "$systemUptime" -lt 5 ]; then
 
