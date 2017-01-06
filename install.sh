@@ -288,7 +288,7 @@ checks() {
 
         while [ "$dpkgCounter" -gt 0 ]; do
 
-            ps -ef | grep "apt.systemd.daily" | grep -v "grep --color=auto" >> "$logFile" 2>&1 
+            ps aux | grep '[a]pt.systemd.daily' >> "$logFile" 2>&1 
 
             if [ $? -eq 0 ]; then
 
