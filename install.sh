@@ -266,6 +266,18 @@ checks() {
         exit 1
     fi
 
+    # Make sure the system uptime is atleast 10 minutes and the dpkg has finished it's processes
+    systemUptime=$(uptime -p | awk {'print $2'} | xargs)
+
+    if [ "$systemUptime" -lt 10 ]; then
+
+        failure
+        echo "Fatal error: the system uptime is only: $systemUptime minutes"
+        echo "Because dpkg might be locked just after system boot, then it is advised to wait 10 minutes until installing VxStream. Exiting for now..."
+        exit 1
+
+    fi
+
 }
 
 # Download authentication key, repositories and initialize VxBootstrapUI 
