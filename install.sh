@@ -267,14 +267,44 @@ checks() {
     fi
 
     # Make sure the system uptime is atleast 5 minutes and the dpkg has finished it's processes
-    systemUptime=$(uptime -p | awk {'print $2'} | xargs)
+    codeName=$(lsb_release -cs)
 
-    if [ "$systemUptime" -lt 5 ]; then
+    if [ "$codeName" == "xenial" ]; then
 
-        failure
-        echo "Fatal error: the system uptime is only: $systemUptime minutes"
-        echo "Because dpkg might be locked just after system boot, it is advised to wait 5 minutes before installing VxStream. Exiting for now..."
-        exit 1
+        systemUptime=$(uptime -p | awk {'print $2'} | xargs)
+
+        if [ "$systemUptime" -lt 5 ]; then
+
+            failure
+            echo "Fatal error: the system uptime is only: $systemUptime minutes"
+            echo "Because dpkg might be locked just after system boot, it is advised to wait 5 minutes before installing VxStream. Exiting for now..."
+            exit 1
+
+        fi
+
+        # Make sure dpkg has finished the initial boot update processes
+
+        dpkgCounter=30
+
+        while [ "$dpkgCounter" -gt 0 ]; do
+
+            ps -ef | grep "apt.systemd.daily" | grep -v "grep --color=auto" >> "$logFile" 2>&1 
+
+            if [ $? -eq 0 ]; then
+
+                echo "Dpkg is still busy. Waiting for one minute..."
+                sleep 60
+                ((dpkgCounter--))
+
+            else
+
+                success
+                echo "Looks like dpkg is not busy. Continuing..."
+                break
+
+            fi
+
+        done
 
     fi
 
