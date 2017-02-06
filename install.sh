@@ -305,7 +305,7 @@ checks() {
             else
 
                 success
-                echo "Looks like dpkg is not busy. Continuing..."
+                echo -e "Looks like dpkg is not busy. Continuing...\n"
                 break
 
             fi
