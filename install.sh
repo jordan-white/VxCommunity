@@ -1,13 +1,14 @@
 #!/bin/bash
 # VxStream Sandbox installer for automated installation of VxStream Sandbox
+# Compatibility: Ubuntu 14.04 LTS and Ubuntu 16.04 LTS
 
-# Copyright (C) 2016 Payload Security UG (haftungsbeschränkt)
+# Copyright (C) 2017 Payload Security UG (haftungsbeschränkt)
 #
 # Licensed  GNU GENERAL PUBLIC LICENSE, Version 3, 29 June 2007
 # see https://github.com/PayloadSecurity/VxCommunity/blob/master/LICENSE.md
 #
-# Date - 1.09.2016
-# Version - 1.0.0
+# Date - 06.02.2017
+# Version - 1.0.1
 
 # Functions:
 #
@@ -31,7 +32,7 @@
 # * Exit code 126 - Run as root
 
 # Version
-version="1.0.0"
+version="1.0.1"
 
 # User validation for installing 
 
@@ -51,7 +52,7 @@ fi
 
 usage() {
 
-    echo "Copyright (C) 2016 Payload Security"
+    echo "Copyright (C) 2017 Payload Security"
     echo "Version: $version"
     echo -e "\nDescription:"
     echo "VxStream Sandbox installer for automated installation of VxStream Sandbox."
@@ -266,10 +267,15 @@ checks() {
         exit 1
     fi
 
-    # Make sure the system uptime is atleast 5 minutes and the dpkg has finished it's processes
+    # Get release 
     codeName=$(lsb_release -cs)
+    releaseDescription=$(lsb_release -ds)
 
+    # Make sure the system uptime is atleast 5 minutes and the dpkg has finished it's processes
     if [ "$codeName" == "xenial" ]; then
+
+        success
+        echo "Distribution used: Ubuntu 16.04"
 
         systemUptime=$(cat /proc/uptime | awk '{r = sprintf("%.0f",$1/60); print r}')
 
@@ -305,6 +311,18 @@ checks() {
             fi
 
         done
+
+    elif [ "$codeName" == "trusty" ]; then
+
+        success
+        echo "Distribution used: Ubuntu 14.04"
+
+    else
+
+        failure
+        echo "Fatal error: release used: $releaseDescription"
+        echo "Supported releases are: Ubuntu 14.04 LTS and Ubuntu 16.04 LTS. Exiting..."
+        exit 1
 
     fi
 
@@ -419,6 +437,7 @@ main() {
 
         if [ "$userId" = 0 ]; then 
             declare -x installUserPassword=$installUserPassword
+            echo 
         else
             echo -e "\nSorry, the provided password is incorrect. Please try again!"
         fi
