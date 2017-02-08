@@ -62,6 +62,7 @@ usage() {
     echo "Commands:"
     echo " --password          [Required] Password used for downloading resources"
     echo " --bypass-ssh        [Optional] Will download resources from Github over HTTPS instead of SSH. Use this only if downloading VxBootstrap or VxBootstrapUI fails"
+    echo " --root-password     [Optional] The root password of the current user. If this is not passed, then the password will be prompted if the script will continue successfully to VxBootstrapUI initalization"
     echo -e "\nParameters:"
     echo " -h, --help          Print this help message"
     echo " -v, --verbose       Print verbose messages to stdout (debugging mode)"
@@ -84,6 +85,9 @@ while getopts "$args" optchar; do
                     ;;
                 bypass-ssh)
                     byPassSSH=true
+                    ;;
+                root-password)
+                    installUserPassword="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
                     ;;
                 help)
                     usage
@@ -129,7 +133,7 @@ fi
 
 # Check for correct number of arguments 
 
-if [[ "$#" -lt 2 || "$#" -gt 4 ]]; then
+if [[ "$#" -lt 2 || "$#" -gt 6 ]]; then
 
     echo "Invalid number of arguments..."
     echo "Try '$0 --help' for more information" >&2
@@ -212,6 +216,25 @@ conf() {
 checks() {
 
     echo -e "----------------- Mandatory Checks ----------------\n"
+
+    # Check if curl is installed and if not, then install it
+    dpkg --get-selections | grep -w "curl" >> "$logFile" 2>&1
+
+    if [ $? -eq 0 ]; then
+        success && echo "Curl is installed"
+    else
+
+        # Install curl
+        echo "Curl is not installed. Installing curl..." && sudo apt-get -qq install curl >> "$logFile" 2>&1 && success && echo "Successfully installed curl" || {
+
+            failure
+            echo "Fatal error: was not able to install curl. Please install it manually with: sudo apt-get install curl"
+            echo "See $logFile for more information. Exiting..."
+            exit 1
+
+        }
+
+    fi
 
     # Check if curl works 
     curl -s -S www.google.com >> "$logFile" 2>&1 
@@ -313,7 +336,7 @@ checks() {
     elif [ "$codeName" == "trusty" ]; then
 
         success
-        echo "Distribution used: Ubuntu 14.04"
+        echo -e "Distribution used: Ubuntu 14.04\n"
 
     else
 
@@ -427,8 +450,13 @@ main() {
     # Promt for user password until a correct password has been provided
     while [[ "$userId" != 0 ]]; do
 
-        echo -n "[sudo] password for $installUser": 
-        read -s installUserPassword
+        # If --root-password was not provided, then prompt for it
+        if [ -z "$installUserPassword" ]; then
+
+            echo -n "[sudo] password for $installUser": 
+            read -s installUserPassword
+
+        fi
 
         # Check if given password is correct 
         userId=$(echo "$installUserPassword" | sudo -S id -u 2> /dev/null)
@@ -438,6 +466,7 @@ main() {
             echo 
         else
             echo -e "\nSorry, the provided password is incorrect. Please try again!"
+            installUserPassword=""
         fi
 
     done
