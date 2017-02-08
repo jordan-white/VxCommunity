@@ -213,6 +213,25 @@ checks() {
 
     echo -e "----------------- Mandatory Checks ----------------\n"
 
+    # Check if curl is installed and if not, then install it
+    dpkg --get-selections | grep -w "curl"
+
+    if [ $? -eq 0 ]; then
+        success && echo "Curl is installed"
+    else
+
+        # Install curl
+        echo "Curl is not installed. Installing curl..." && sudo apt-get -qq install curl >> "$logFile" 2>&1 && success && echo "Successfully installed curl" || {
+
+            failure
+            echo "Fatal error: was not able to install curl. Please install it manually with: sudo apt-get install curl"
+            echo "See $logFile for more information. Exiting..."
+            exit 1
+
+        }
+
+    fi
+
     # Check if curl works 
     curl -s -S www.google.com >> "$logFile" 2>&1 
 
@@ -313,7 +332,7 @@ checks() {
     elif [ "$codeName" == "trusty" ]; then
 
         success
-        echo "Distribution used: Ubuntu 14.04"
+        echo -e "Distribution used: Ubuntu 14.04\n"
 
     else
 
