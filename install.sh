@@ -153,7 +153,18 @@ cleanHost() {
 
         # Cleanup the installation directory 
         failure
-        echo "Fatal error caught. Aborting ..."
+        echo -e "Fatal error caught. Cleaning up...\n"
+
+        # Reenable automatic updates
+        sed -i 's#APT::Periodic::Update-Package-Lists "0";#APT::Periodic::Update-Package-Lists "1";#' /etc/apt/apt.conf.d/10periodic && 
+        sed -i 's#APT::Periodic::Update-Package-Lists "0";#APT::Periodic::Update-Package-Lists "1";#' /etc/apt/apt.conf.d/20auto-upgrades && 
+        success && echo -e "Successfully reenabled automatic updates\n" || {
+
+            failure
+            echo "Failed to reenable automatic updates"
+        }
+
+        echo "Cleaning up finished. Aborting..."
 
     fi
 }
@@ -356,13 +367,32 @@ main() {
     echo -e "----------------------- Main ----------------------\n"
 
     # Disable automatic updates during the installation so apt won't get locked
-    sed -i 's#APT::Periodic::Update-Package-Lists "1";#APT::Periodic::Update-Package-Lists "0";#' /etc/apt/apt.conf.d/10periodic && 
-    sed -i 's#APT::Periodic::Update-Package-Lists "1";#APT::Periodic::Update-Package-Lists "0";#' /etc/apt/apt.conf.d/20auto-upgrades && 
-    success && echo -e "Successfully disabled automatic updates during the installation\n" || {
+    if [ "$codeName" == "xenial" ]; then
 
-        failure
-        echo "Failed to disable automatic updates for the remainder of the installation"
-    }
+        # Get current settings for automatic updates. 0 - disabled and 1 - enabled
+        automaticUpdatesSettings1=$(cat /etc/apt/apt.conf.d/10periodic | grep "Update-Package-Lists" | cut -d'"' -f2 | xargs)
+        automaticUpdatesSettings2=$(cat /etc/apt/apt.conf.d/20auto-upgrades | grep "Update-Package-Lists" | cut -d'"' -f2 | xargs)
+
+        # If automatic updates are enabled, then disable them
+        if [[ "$automaticUpdatesSettings1" == 1 ]] || [[ "$automaticUpdatesSettings2" == 1 ]]; then
+
+            echo "Automatic updates are enabled at the moment"
+            echo "We have to disable them during the installation so apt/dpkg won't get locked out. Sudo needed:"
+
+            sudo sed -i 's#APT::Periodic::Update-Package-Lists "1";#APT::Periodic::Update-Package-Lists "0";#' /etc/apt/apt.conf.d/10periodic && 
+            sudo sed -i 's#APT::Periodic::Update-Package-Lists "1";#APT::Periodic::Update-Package-Lists "0";#' /etc/apt/apt.conf.d/20auto-upgrades && 
+            success && echo -e "Successfully disabled automatic updates during the installation\n" || {
+
+                failure
+                echo "Failed to disable automatic updates for the remainder of the installation"
+            }
+
+            # Create a file system token
+            sudo touch /etc/apt/apt.conf.d/disabled_automatic_updates
+
+        fi
+
+    fi
 
     # Download authentication key
     curl -A "VxStream Sandbox" -k -s -S "$authKeyURL" -o "$installDir"/vxinstallerkey.gpg 2>> "$logFile" && success && echo "Successfully downloaded authentication key" || {
