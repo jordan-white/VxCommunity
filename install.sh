@@ -355,6 +355,15 @@ main() {
 
     echo -e "----------------------- Main ----------------------\n"
 
+    # Disable automatic updates during the installation so apt won't get locked
+    sed -i 's#APT::Periodic::Update-Package-Lists "1";#APT::Periodic::Update-Package-Lists "0";#' /etc/apt/apt.conf.d/10periodic && 
+    sed -i 's#APT::Periodic::Update-Package-Lists "1";#APT::Periodic::Update-Package-Lists "0";#' /etc/apt/apt.conf.d/20auto-upgrades && 
+    success && echo -e "Successfully disabled automatic updates during the installation\n" || {
+
+        failure
+        echo "Failed to disable automatic updates for the remainder of the installation"
+    }
+
     # Download authentication key
     curl -A "VxStream Sandbox" -k -s -S "$authKeyURL" -o "$installDir"/vxinstallerkey.gpg 2>> "$logFile" && success && echo "Successfully downloaded authentication key" || {
 
