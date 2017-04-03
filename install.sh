@@ -156,13 +156,19 @@ cleanHost() {
         echo -e "Fatal error caught. Cleaning up...\n"
 
         # Reenable automatic updates
-        sed -i 's#APT::Periodic::Update-Package-Lists "0";#APT::Periodic::Update-Package-Lists "1";#' /etc/apt/apt.conf.d/10periodic && 
-        sed -i 's#APT::Periodic::Update-Package-Lists "0";#APT::Periodic::Update-Package-Lists "1";#' /etc/apt/apt.conf.d/20auto-upgrades && 
-        success && echo -e "Successfully reenabled automatic updates\n" || {
+        test -f /etc/apt/apt.conf.d/disabled_automatic_updates
 
-            failure
-            echo "Failed to reenable automatic updates"
-        }
+        if [ $? -eq 0 ]; then
+
+            sed -i 's#APT::Periodic::Update-Package-Lists "0";#APT::Periodic::Update-Package-Lists "1";#' /etc/apt/apt.conf.d/10periodic && 
+            sed -i 's#APT::Periodic::Update-Package-Lists "0";#APT::Periodic::Update-Package-Lists "1";#' /etc/apt/apt.conf.d/20auto-upgrades && 
+            success && echo -e "Successfully reenabled automatic updates\n" || {
+
+                failure
+                echo "Failed to reenable automatic updates"
+            }
+
+        fi
 
         echo "Cleaning up finished. Aborting..."
 
