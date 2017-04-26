@@ -160,13 +160,9 @@ cleanHost() {
 
         if [ $? -eq 0 ]; then
 
-            sed -i 's#APT::Periodic::Update-Package-Lists "0";#APT::Periodic::Update-Package-Lists "1";#' /etc/apt/apt.conf.d/10periodic && 
-            sed -i 's#APT::Periodic::Update-Package-Lists "0";#APT::Periodic::Update-Package-Lists "1";#' /etc/apt/apt.conf.d/20auto-upgrades && 
-            success && echo -e "Successfully reenabled automatic updates\n" || {
-
-                failure
-                echo "Failed to reenable automatic updates"
-            }
+            test -f "/etc/apt/apt.conf.d/10periodic" && sed -i 's#APT::Periodic::Update-Package-Lists "0";#APT::Periodic::Update-Package-Lists "1";#' /etc/apt/apt.conf.d/10periodic
+            test -f "/etc/apt/apt.conf.d/20auto-upgrades" && sed -i 's#APT::Periodic::Update-Package-Lists "0";#APT::Periodic::Update-Package-Lists "1";#' /etc/apt/apt.conf.d/20auto-upgrades 
+            success && echo -e "Successfully reenabled automatic updates\n"
 
         fi
 
