@@ -376,8 +376,25 @@ main() {
     if [ "$codeName" == "xenial" ]; then
 
         # Get current settings for automatic updates. 0 - disabled and 1 - enabled
-        automaticUpdatesSettings1=$(cat /etc/apt/apt.conf.d/10periodic | grep "Update-Package-Lists" | cut -d'"' -f2 | xargs)
-        automaticUpdatesSettings2=$(cat /etc/apt/apt.conf.d/20auto-upgrades | grep "Update-Package-Lists" | cut -d'"' -f2 | xargs)
+        test -f "/etc/apt/apt.conf.d/10periodic"
+
+        if [ $? -eq 0 ]; then
+
+            automaticUpdatesSettings1=$(cat /etc/apt/apt.conf.d/10periodic | grep "Update-Package-Lists" | cut -d'"' -f2 | xargs)
+        else
+
+            automaticUpdatesSettings1=false
+        fi
+
+        test -f "/etc/apt/apt.conf.d/20auto-upgrades"
+
+        if [ $? -eq 0 ]; then
+
+            automaticUpdatesSettings2=$(cat /etc/apt/apt.conf.d/20auto-upgrades | grep "Update-Package-Lists" | cut -d'"' -f2 | xargs)
+        else
+
+            automaticUpdatesSettings2=false
+        fi
 
         # If automatic updates are enabled, then disable them
         if [[ "$automaticUpdatesSettings1" == 1 ]] || [[ "$automaticUpdatesSettings2" == 1 ]]; then
@@ -390,7 +407,7 @@ main() {
             success && echo -e "Successfully disabled automatic updates during the installation\n" || {
 
                 failure
-                echo "Failed to disable automatic updates for the remainder of the installation"
+                echo -e "Failed to disable automatic updates for the remainder of the installation\n"
             }
 
             # Create a file system token
