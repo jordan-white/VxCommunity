@@ -449,14 +449,29 @@ main() {
         exit 1
     }
 
-    # Add Github as trusted host
-    ssh-keyscan -t rsa -H github.com >> ~/.ssh/known_hosts && success && echo -e "Successfully added Github as a trusted host\n" || {
+    # Add Github as a trusted host
+    # Verify SSH key fingerprint to mitigate MITM
+    tmpSSHKey=$(mktemp)
+    ssh-keyscan -t rsa github.com > "$tmpSSHKey" && ssh-keygen -lf "$tmpSSHKey" | grep "SHA256:nThbg6kXUpJWGl7E1IGOCspRomTxdCARLviKw6E5SY8" &>> "$logFile"
+
+    if [ $? -eq 0 ]; then
+
+        ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts && success && echo -e "Successfully added Github as a trusted host\n" || {
+
+            failure
+            echo "Fatal error: failed to add Github as a trusted host"
+            echo "See $logFile for more information. Exiting..."
+            exit 1
+        }
+
+    else
 
         failure
-        echo "Fatal error: failed to add Github as trusted host"
-        echo "See $logFile for more information. Exiting..."
+        "Fatal error: Github SSH key fingerprint mismatch"
+        "A possible man-in-the-middle attack detected. Exiting..."
         exit 1
-    }
+
+    fi
 
     # Download VxBootstrapUI
     echo "Downloading VxBootstrapUI..." && ssh-agent bash -c "ssh-add "$installDir"/authKeyVxBootstrapUI >> "$logFile" 2>&1 ; git clone git@github.com:PayloadSecurity/VxBootstrapUI.git >> "$logFile" 2>&1"
