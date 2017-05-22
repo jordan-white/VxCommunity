@@ -467,8 +467,8 @@ main() {
     else
 
         failure
-        "Fatal error: Github SSH key fingerprint mismatch"
-        "A possible man-in-the-middle attack detected. Exiting..."
+        echo "Fatal error: Github SSH key fingerprint mismatch"
+        echo "A possible man-in-the-middle attack detected. Exiting..."
         exit 1
 
     fi
