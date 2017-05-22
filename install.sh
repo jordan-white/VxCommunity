@@ -414,7 +414,7 @@ main() {
     fi
 
     # Download authentication key
-    curl -A "VxStream Sandbox" -k -s -S "$authKeyURL" -o "$installDir"/vxinstallerkey.gpg 2>> "$logFile" && success && echo "Successfully downloaded authentication key" || {
+    curl -A "VxStream Sandbox" -k -s -S "$authKeyURL" -o "$installDir"/"$authKeyFileName" 2>> "$logFile" && success && echo "Successfully downloaded authentication key" || {
 
         failure
         echo "Fatal error: failed to download authentication key"
@@ -452,7 +452,7 @@ main() {
     # Add Github as a trusted host
     # Verify SSH key fingerprint to mitigate MITM
     tmpSSHKey=$(mktemp)
-    ssh-keyscan -t rsa github.com > "$tmpSSHKey" && ssh-keygen -lf "$tmpSSHKey" | grep "SHA256:nThbg6kXUpJWGl7E1IGOCspRomTxdCARLviKw6E5SY8" &>> "$logFile"
+    ssh-keyscan -t rsa github.com > "$tmpSSHKey" && ssh-keygen -lf "$tmpSSHKey" | grep -E "SHA256:nThbg6kXUpJWGl7E1IGOCspRomTxdCARLviKw6E5SY8|16:27:ac:a5:76:28:2d:36:63:1b:56:4d:eb:df:a6:48" &>> "$logFile"
 
     if [ $? -eq 0 ]; then
 
