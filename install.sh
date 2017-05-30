@@ -413,6 +413,9 @@ main() {
 
     fi
 
+	# Update NTP
+	apt-get -qq install ntpdate >> "$logFile" 2>&1 && ntpdate -u ntp.ubuntu.com >> "$logFile" 2>&1 && success && echo -e "Successfully updated NTP\n" || echo -e "Failed to update NTP ..."
+
     # Download authentication key
     curl -A "VxStream Sandbox" -k -s -S "$authKeyURL" -o "$installDir"/"$authKeyFileName" 2>> "$logFile" && success && echo "Successfully downloaded authentication key" || {
 
