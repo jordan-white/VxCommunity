@@ -7,8 +7,8 @@
 # Licensed  GNU GENERAL PUBLIC LICENSE, Version 3, 29 June 2007
 # see https://github.com/PayloadSecurity/VxCommunity/blob/master/LICENSE.md
 #
-# Date - 06.02.2017
-# Version - 1.0.1
+# Date - 30.06.2017
+# Version - 1.1.1
 
 # Functions:
 #
@@ -32,7 +32,7 @@
 # * Exit code 126 - Run as root
 
 # Version
-version="1.0.1"
+version="1.1.1"
 
 # User validation for installing 
 
@@ -62,6 +62,7 @@ usage() {
     echo "Commands:"
     echo " --password          [Required] Password used for downloading resources"
     echo " --bypass-ssh        [Optional] Will download resources from Github over HTTPS instead of SSH. Use this only if downloading VxBootstrap or VxBootstrapUI fails"
+    echo " --skip-mitm         [Optional] Will skip the Github SSH key verification for MITM attack mitigation"
     echo " --root-password     [Optional] The root password of the current user. If this is not passed, then the password will be prompted if the script will continue successfully to VxBootstrapUI initalization"
     echo -e "\nParameters:"
     echo " -h, --help          Print this help message"
@@ -85,6 +86,9 @@ while getopts "$args" optchar; do
                     ;;
                 bypass-ssh)
                     byPassSSH=true
+                    ;;
+                skip-mitm)
+                    skipMitm=true
                     ;;
                 root-password)
                     installUserPassword="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
@@ -151,18 +155,20 @@ cleanHost() {
     # If exit code is greater than 0, then clean the host
     if [ $? -gt 0 ]; then
 
-        # Cleanup the installation directory 
+        # Cleanup the installation directory
+        echo
         failure
-        echo -e "Fatal error caught. Cleaning up...\n"
+        echo -e "Fatal error caught. Cleaning up..."
 
         # Reenable automatic updates
         test -f /etc/apt/apt.conf.d/disabled_automatic_updates
 
         if [ $? -eq 0 ]; then
 
-            test -f "/etc/apt/apt.conf.d/10periodic" && sed -i 's#APT::Periodic::Update-Package-Lists "0";#APT::Periodic::Update-Package-Lists "1";#' /etc/apt/apt.conf.d/10periodic
-            test -f "/etc/apt/apt.conf.d/20auto-upgrades" && sed -i 's#APT::Periodic::Update-Package-Lists "0";#APT::Periodic::Update-Package-Lists "1";#' /etc/apt/apt.conf.d/20auto-upgrades 
-            success && echo -e "Successfully reenabled automatic updates\n"
+            test -f "/etc/apt/apt.conf.d/10periodic" && sudo sed -i 's#APT::Periodic::Update-Package-Lists "0";#APT::Periodic::Update-Package-Lists "1";#' /etc/apt/apt.conf.d/10periodic
+            test -f "/etc/apt/apt.conf.d/20auto-upgrades" && sudo sed -i 's#APT::Periodic::Update-Package-Lists "0";#APT::Periodic::Update-Package-Lists "1";#' /etc/apt/apt.conf.d/20auto-upgrades 
+            sudo rm -f "/etc/apt/apt.conf.d/disabled_automatic_updates"
+            success && echo -e "Successfully reenabled automatic updates"
 
         fi
 
@@ -461,51 +467,78 @@ main() {
     }
 
     # Add Github as a trusted host
-    # Verify SSH key fingerprint to mitigate MITM
     tmpSSHKey=$(mktemp)
-    ssh-keyscan -t rsa github.com > "$tmpSSHKey" && ssh-keygen -lf "$tmpSSHKey" | grep -E "SHA256:nThbg6kXUpJWGl7E1IGOCspRomTxdCARLviKw6E5SY8|16:27:ac:a5:76:28:2d:36:63:1b:56:4d:eb:df:a6:48" &>> "$logFile"
+    ssh-keyscan -t rsa github.com > "$tmpSSHKey" 2>> "$logFile" && ssh-keygen -lf "$tmpSSHKey" &>> "$logFile"
 
-    if [ $? -eq 0 ]; then
-
-        ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts && success && echo -e "Successfully added Github as a trusted host\n" || {
-
-            failure
-            echo "Fatal error: failed to add Github as a trusted host"
-            echo "See $logFile for more information. Exiting..."
-            exit 1
-        }
-
-    else
+    if [ $? -ne 0 ]; then
 
         failure
-        echo "Fatal error: Github SSH key fingerprint mismatch"
-        echo "A possible man-in-the-middle attack detected. Exiting..."
+        echo "Fatal error: unable to retrieve Github SSH key"
+        echo "The installer requires SSH access (default: port 22) in order to download the resources from Github"
+        echo "If you have SSH (default: port 22) blocked in the firewall, then please enable it in order to continue with the installation. Exiting..."
         exit 1
 
     fi
 
-    # Download VxBootstrapUI
-    echo "Downloading VxBootstrapUI..." && ssh-agent bash -c "ssh-add "$installDir"/authKeyVxBootstrapUI >> "$logFile" 2>&1 ; git clone git@github.com:PayloadSecurity/VxBootstrapUI.git >> "$logFile" 2>&1"
+    # Verify SSH key fingerprint to mitigate MITM
+    # Skip verification if --skip-mitm argument is used
+    if [ "$skipMitm" != true ]; then
 
-    if [ $? -eq 0 ]; then
-        success && echo -e "Successfully downloaded VxBootstrapUI\n"
-    else
+        ssh-keygen -lf "$tmpSSHKey" | grep -E "SHA256:nThbg6kXUpJWGl7E1IGOCspRomTxdCARLviKw6E5SY8|16:27:ac:a5:76:28:2d:36:63:1b:56:4d:eb:df:a6:48" &>> "$logFile"
+
+        if [ $? -ne 0 ]; then
+
+            failure
+            echo "Fatal error: Github SSH key fingerprint mismatch"
+            echo "A possible man-in-the-middle attack detected"
+            echo "If you wish to skip this check, then run the script again with argument: --skip-mitm. Exiting..."
+            exit 1
+
+        fi
+
+    fi
+
+    # Add the SSH key
+    ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts 2>> "$logFile" && success && echo -e "Successfully added Github as a trusted host\n" || {
+
         failure
-        echo "Fatal error: Was not able to download VxBootstrapUI."
+        echo "Fatal error: failed to add Github as a trusted host"
         echo "See $logFile for more information. Exiting..."
         exit 1
+    }
+
+    # Download VxBootstrapUI
+    echo "Downloading VxBootstrapUI..." && ssh-agent bash -c "ssh-add "$installDir"/authKeyVxBootstrapUI &>> "$logFile"; git clone git@github.com:PayloadSecurity/VxBootstrapUI.git &>> $logFile"
+
+    if [ $? -eq 0 ]; then
+
+        success
+        echo -e "Successfully downloaded VxBootstrapUI\n"
+
+    else
+
+        failure
+        echo "Fatal error: Was not able to download VxBootstrapUI"
+        echo "See $logFile for more information. Exiting..."
+        exit 1
+
     fi
 
     # Download VxBootstrap 
     echo "Downloading VxBootstrap..." && ssh-agent bash -c "ssh-add "$installDir"/authKeyVxBootstrap >> "$logFile" 2>&1 ; git clone git@github.com:PayloadSecurity/VxBootstrap.git >> "$logFile" 2>&1"
 
     if [ $? -eq 0 ]; then
-        success && echo -e "Successfully downloaded VxBootstrap\n"
+
+        success
+        echo -e "Successfully downloaded VxBootstrap\n"
+
     else
+
         failure
-        echo "Fatal error: Was not able to download VxBootstrap."
+        echo "Fatal error: Was not able to download VxBootstrap"
         echo "See $logFile for more information. Exiting..."
         exit 1
+
     fi
     
     # Create a soft link of VxBootstrap to user home dir if it does not exist yet
@@ -523,6 +556,7 @@ main() {
     
     # Set write permissions to the configuration file (used later by the UI)
     echo "Adding write permissions to the bootstrap configuration file..." && chmod 666 "$installDir"/VxBootstrap/bootstrap.cfg > /dev/null 2>> "$logFile" && success && echo -e "Successfully changed permissions\n" || {
+
         failure
         echo "Fatal error: failed to set correct permissions for "$installDir"/VxBootstrap/bootstrap.cfg. Exiting..."
         exit 1
@@ -546,11 +580,15 @@ main() {
         userId=$(echo "$installUserPassword" | sudo -S id -u 2> /dev/null)
 
         if [ "$userId" = 0 ]; then 
+
             declare -x installUserPassword=$installUserPassword
-            echo 
+            echo
+
         else
+
             echo -e "\nSorry, the provided password is incorrect. Please try again!"
             installUserPassword=""
+
         fi
 
     done
