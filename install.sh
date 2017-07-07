@@ -368,17 +368,6 @@ checks() {
 
 }
 
-# Setup the language (required for PHP 5.6 etc.)
-
-setupLanguage () {
-    echo -e "\n---------------- Language Settings ----------------\n"
-    apt-get update -qq >> "$logFile" 2>&1 && \
-        apt-get -qq install language-pack-en-base >> "$logFile" 2>&1 && \
-        export LC_ALL=en_US.UTF-8 && \
-        export LANG=en_US.UTF-8 && \
-        success && echo -e "Successfully set language settings\n" || echo -e "Failed to set language ..."
-}
-
 # Download authentication key, repositories and initialize VxBootstrapUI 
 
 main() {
@@ -653,5 +642,4 @@ failure() {
 commandOutput
 conf
 checks
-setupLanguage
 main
