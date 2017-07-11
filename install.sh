@@ -158,7 +158,7 @@ cleanHost() {
         # Cleanup the installation directory
         echo
         failure
-        echo -e "Fatal error caught. Cleaning up..."
+        echo "Fatal error caught. Cleaning up..."
 
         # Reenable automatic updates
         test -f /etc/apt/apt.conf.d/disabled_automatic_updates
@@ -173,6 +173,7 @@ cleanHost() {
         fi
 
         echo "Cleaning up finished. Aborting..."
+        exit 1
 
     fi
 }
