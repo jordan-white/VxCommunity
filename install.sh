@@ -592,7 +592,7 @@ main() {
 
     # Execute VxBootstrapUI installer
     if [ "$noSysupgrade" = true ]; then
-        cd "$installDir"/VxBootstrapUI/scripts && sudo installUser="$installUser" installUserPassword="$installUserPassword" termColumns="$termColumns" ./init.sh ----no-sysupgrade
+        cd "$installDir"/VxBootstrapUI/scripts && sudo installUser="$installUser" installUserPassword="$installUserPassword" termColumns="$termColumns" ./init.sh --no-sysupgrade
     else
         cd "$installDir"/VxBootstrapUI/scripts && sudo installUser="$installUser" installUserPassword="$installUserPassword" termColumns="$termColumns" ./init.sh
     fi
