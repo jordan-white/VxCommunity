@@ -64,6 +64,7 @@ usage() {
     echo " --bypass-ssh        [Optional] Will download resources from Github over HTTPS instead of SSH. Use this only if downloading VxBootstrap or VxBootstrapUI fails"
     echo " --skip-mitm         [Optional] Will skip the Github SSH key verification for MITM attack mitigation"
     echo " --root-password     [Optional] The root password of the current user. If this is not passed, then the password will be prompted if the script will continue successfully to VxBootstrapUI initalization"
+    echo " --no-sysupgrade     [Optional] Will skip a system upgrade (part of the underlying backend process)"
     echo -e "\nParameters:"
     echo " -h, --help          Print this help message"
     echo " -v, --verbose       Print verbose messages to stdout (debugging mode)"
@@ -92,6 +93,9 @@ while getopts "$args" optchar; do
                     ;;
                 root-password)
                     installUserPassword="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+                    ;;
+                no-sysupgrade)
+                    noSysupgrade=true
                     ;;
                 help)
                     usage
@@ -587,8 +591,11 @@ main() {
     echo "$installUserPassword" | sudo -S bash -c "echo \"$installUser ALL=(ALL) NOPASSWD:SETENV: $installDir/VxBootstrapUI/scripts/init.sh, $installDir/VxBootstrap/bootstrap.sh\" >> /etc/sudoers"
 
     # Execute VxBootstrapUI installer
-    cd "$installDir"/VxBootstrapUI/scripts && sudo installUser="$installUser" installUserPassword="$installUserPassword" termColumns="$termColumns" ./init.sh
-
+    if [ "$noSysupgrade" = true ]; then
+        cd "$installDir"/VxBootstrapUI/scripts && sudo installUser="$installUser" installUserPassword="$installUserPassword" termColumns="$termColumns" ./init.sh ----no-sysupgrade
+    else
+        cd "$installDir"/VxBootstrapUI/scripts && sudo installUser="$installUser" installUserPassword="$installUserPassword" termColumns="$termColumns" ./init.sh
+    fi
 }
 
 # Success and error message colouring
