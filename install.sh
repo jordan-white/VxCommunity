@@ -460,23 +460,23 @@ main() {
         exit 1
     }
 
-    # Add Github as a trusted host
-    tmpSSHKey=$(mktemp)
-    ssh-keyscan -t rsa github.com > "$tmpSSHKey" 2>> "$logFile" && ssh-keygen -lf "$tmpSSHKey" &>> "$logFile"
-
-    if [ $? -ne 0 ]; then
-
-        failure
-        echo "Fatal error: unable to retrieve Github SSH key"
-        echo "The installer requires SSH access (default: port 22) in order to download the resources from Github"
-        echo "If you have SSH (default: port 22) blocked in the firewall, then please enable it in order to continue with the installation. Exiting..."
-        exit 1
-
-    fi
-
     # Verify SSH key fingerprint to mitigate MITM
     # Skip verification if --skip-mitm argument is used
     if [ "$skipMitm" != true ]; then
+
+        # Add Github as a trusted host
+        tmpSSHKey=$(mktemp)
+        ssh-keyscan -t rsa github.com > "$tmpSSHKey" 2>> "$logFile" && ssh-keygen -lf "$tmpSSHKey" &>> "$logFile"
+
+        if [ $? -ne 0 ]; then
+
+            failure
+            echo "Fatal error: unable to retrieve Github SSH key"
+            echo "The installer requires SSH access (default: port 22) in order to download the resources from Github"
+            echo "If you have SSH (default: port 22) blocked in the firewall, then please enable it in order to continue with the installation. Exiting..."
+            exit 1
+
+        fi
 
         ssh-keygen -lf "$tmpSSHKey" | grep -E "SHA256:nThbg6kXUpJWGl7E1IGOCspRomTxdCARLviKw6E5SY8|16:27:ac:a5:76:28:2d:36:63:1b:56:4d:eb:df:a6:48" &>> "$logFile"
 
