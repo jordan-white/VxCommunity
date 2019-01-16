@@ -1,7 +1,7 @@
 # VxCommunity
 This repository contains free Hybrid Analysis contributions to the IT-Security community.
 
-Copyright (C) 2017 Hybrid Analysis GmbH
+Copyright (C) 2019 Hybrid Analysis GmbH
 ============
 
 For more information on the license see LICENSE.md, if not otherwise noted.
