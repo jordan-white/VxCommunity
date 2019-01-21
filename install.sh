@@ -404,7 +404,7 @@ main() {
         fi
 
         # If automatic updates are enabled, then disable them
-        if [[ "$automaticUpdatesSettings1" == 1 ]] || [[ "$automaticUpdatesSettings2" == 1 ]]; then
+        if [[ "$automaticUpdatesSettings1" == 1 ]] && [[ "$automaticUpdatesSettings2" == 1 ]]; then
 
             echo "Automatic updates are enabled at the moment"
             echo "We have to disable them during the installation so apt/dpkg won't get locked out. Sudo needed:"
@@ -419,6 +419,36 @@ main() {
 
             # Create a file system token
             sudo touch /etc/apt/apt.conf.d/disabled_automatic_updates
+
+        elif [[ "$automaticUpdatesSettings1" == 1 ]]; then
+
+            echo "Automatic updates are enabled at the moment"
+            echo "We have to disable them during the installation so apt/dpkg won't get locked out. Sudo needed:"
+
+            sudo sed -i 's#APT::Periodic::Update-Package-Lists "1";#APT::Periodic::Update-Package-Lists "0";#' /etc/apt/apt.conf.d/10periodic && 
+            success && echo -e "Successfully disabled automatic updates during the installation\n" || {
+
+                failure
+                echo -e "Failed to disable automatic updates for the remainder of the installation\n"
+            }
+
+            # Create a file system token
+            sudo touch /etc/apt/apt.conf.d/disabled_automatic_updates  
+
+        elif [[ "$automaticUpdatesSettings2" == 1 ]]; then
+
+            echo "Automatic updates are enabled at the moment"
+            echo "We have to disable them during the installation so apt/dpkg won't get locked out. Sudo needed:"
+
+            sudo sed -i 's#APT::Periodic::Update-Package-Lists "1";#APT::Periodic::Update-Package-Lists "0";#' /etc/apt/apt.conf.d/20auto-upgrades && 
+            success && echo -e "Successfully disabled automatic updates during the installation\n" || {
+
+                failure
+                echo -e "Failed to disable automatic updates for the remainder of the installation\n"
+            }
+
+            # Create a file system token
+            sudo touch /etc/apt/apt.conf.d/disabled_automatic_updates  
 
         fi
 
