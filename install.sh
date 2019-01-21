@@ -2,7 +2,7 @@
 # VxStream Sandbox installer for automated installation of VxStream Sandbox
 # Compatibility: Ubuntu 14.04 LTS and Ubuntu 16.04 LTS
 
-# Copyright (C) 2017 Payload Security UG (haftungsbeschränkt)
+# Copyright (C) 2018 Hybrid Analysis GmbH
 #
 # Licensed  GNU GENERAL PUBLIC LICENSE, Version 3, 29 June 2007
 # see https://github.com/PayloadSecurity/VxCommunity/blob/master/LICENSE.md
