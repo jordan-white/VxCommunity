@@ -221,7 +221,7 @@ conf() {
     authKeyFileName="vxinstallerkey.gpg"
 
     # Authentication key URL
-    authKeyURL="https://www.payload-security.com/download.php?file=$authKeyFileName"
+    authKeyURL="https://www.crowdstrike.com/wp-content/sandbox/$authKeyFileName"
 
     # Correct authentication key type
     correctFileType="$(echo -e "application/octet-stream" | tr -d '[[:space:]]')"
