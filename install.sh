@@ -224,7 +224,7 @@ conf() {
     authKeyURL="https://www.crowdstrike.com/wp-content/sandbox/$authKeyFileName"
 
     # Correct authentication key type
-    correctFileType="$(echo -e "application/octet-stream" | tr -d '[[:space:]]')"
+    correctFileType="$(echo -e "binary/octet-stream" | tr -d '[[:space:]]')"
 
     # Get authentication key type
     fileTypeNow=$(curl -A "VxStream Sandbox" -ISsk "$authKeyURL" 2>> "$logFile" | grep "Content-Type:" | awk {'print $2'})
