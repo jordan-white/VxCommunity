@@ -1,14 +1,14 @@
 #!/bin/bash
 # VxStream Sandbox installer for automated installation of VxStream Sandbox
-# Compatibility: Ubuntu 14.04 LTS and Ubuntu 16.04 LTS
+# Compatibility: Ubuntu 20.04 LTS
 
-# Copyright (C) 2018 Hybrid Analysis GmbH
+# Copyright (C) 2021 CrowdStrike Inc
 #
 # Licensed  GNU GENERAL PUBLIC LICENSE, Version 3, 29 June 2007
 # see https://github.com/PayloadSecurity/VxCommunity/blob/master/LICENSE.md
 #
-# Date - 30.06.2017
-# Version - 1.1.1
+# Date - Feb 26 2021
+# Version - 2
 
 # Functions:
 #
@@ -227,7 +227,7 @@ conf() {
     correctFileType="$(echo -e "binary/octet-stream" | tr -d '[[:space:]]')"
 
     # Get authentication key type
-    fileTypeNow=$(curl -A "VxStream Sandbox" -ISsk "$authKeyURL" 2>> "$logFile" | grep "Content-Type:" | awk {'print $2'})
+    fileTypeNow=$(curl -A "VxStream Sandbox" -ISsk "$authKeyURL" 2>> "$logFile" | grep -i "Content-Type:" | awk {'print $2'})
     fileTypeNow="$(echo -e "${fileTypeNow}" | tr -d '[[:space:]]')"
 
     # Get the status code of curl
@@ -317,10 +317,10 @@ checks() {
     releaseDescription=$(lsb_release -ds)
 
     # Make sure the system uptime is atleast 5 minutes and the dpkg has finished it's processes
-    if [ "$codeName" == "xenial" ]; then
+    if [ "$codeName" == "focal" ]; then
 
         success
-        echo "Distribution used: Ubuntu 16.04"
+        echo "Distribution used: Ubuntu 20.04"
 
         systemUptime=$(cat /proc/uptime | awk '{r = sprintf("%.0f",$1/60); print r}')
 
