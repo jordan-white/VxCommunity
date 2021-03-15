@@ -324,10 +324,10 @@ checks() {
     releaseDescription=$(lsb_release -ds)
 
     # Make sure the system uptime is atleast 5 minutes and the dpkg has finished it's processes
-    if [ "$codeName" == "focal" ]; then
+    if [ "$codeName" == "bionic" ]; then
 
         success
-        echo "Distribution used: Ubuntu 20.04"
+        echo "Distribution used: Ubuntu 18.04"
 
         systemUptime=$(cat /proc/uptime | awk '{r = sprintf("%.0f",$1/60); print r}')
 
@@ -368,7 +368,7 @@ checks() {
 
         failure
         echo "Fatal error: release used: $releaseDescription"
-        echo "Supported releases is Ubuntu 20.04 LTS. Exiting..."
+        echo "Supported releases is Ubuntu 18.04 LTS. Exiting..."
         exit 1
 
     fi
@@ -466,7 +466,7 @@ main() {
     }
 
     # Decrypt the authentication key
-    gpg -q --yes --passphrase "$gpgPassword" --decrypt --output "$decryptedKeyFile" "$installDir"/"$authKeyFileName" 2>> "$logFile" && success && echo -e "Successfully decrypted authentication key\n" || {
+    gpg -q --batch --no-tty --yes --passphrase "$gpgPassword" --decrypt --output "$decryptedKeyFile" "$installDir"/"$authKeyFileName" 2>> "$logFile" && success && echo -e "Successfully decrypted authentication key\n" || {
 
         failure
         echo "Fatal error: failed to decrypt authentication key"
