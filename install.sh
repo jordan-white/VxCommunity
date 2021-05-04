@@ -1,20 +1,21 @@
 #!/bin/bash
 # VxStream Sandbox installer for automated installation of VxStream Sandbox
-# Compatibility: Ubuntu 14.04 LTS and Ubuntu 16.04 LTS
+# Compatibility: Ubuntu 20.04 LTS
 
-# Copyright (C) 2018 Hybrid Analysis GmbH
+# Copyright (C) 2021 CrowdStrike Inc
 #
 # Licensed  GNU GENERAL PUBLIC LICENSE, Version 3, 29 June 2007
 # see https://github.com/PayloadSecurity/VxCommunity/blob/master/LICENSE.md
 #
-# Date - 30.06.2017
-# Version - 1.1.1
+# Date - 08.03.2021
+# Version - 2.0.0
 
 # Functions:
 #
 # * usage
 # * cleanHost
 # * conf
+# * downloadKey
 # * checks
 # * main
 # * commandOutput
@@ -27,14 +28,14 @@
 # sudo ./install.sh
 #
 
-# * Exit code 0 - Successfully exit 
+# * Exit code 0 - Successfully exit
 # * Exit code 1 - General error
 # * Exit code 126 - Run as root
 
 # Version
-version="1.1.1"
+version="2.0.0"
 
-# User validation for installing 
+# User validation for installing
 
 echo -e "\n#----------------------- VxStream Sandbox Installer ------------------------#" >&2
 echo "#---- This is an experimental beta-script and may not work as expected! ----#" >&2
@@ -52,7 +53,7 @@ fi
 
 usage() {
 
-    echo "Copyright (C) 2017 Payload Security"
+    echo "Copyright (C) 2021 CrowdStrike Inc"
     echo "Version: $version"
     echo -e "\nDescription:"
     echo "VxStream Sandbox installer for automated installation of VxStream Sandbox."
@@ -69,7 +70,7 @@ usage() {
     echo " -h, --help          Print this help message"
     echo " -v, --verbose       Print verbose messages to stdout (debugging mode)"
     echo -e "\nPlease use single quotes around command line arguments.\n"
-    echo "Example:" 
+    echo "Example:"
     echo -e " $0 --password 'insertpasswordhere'\n"
     exit 1
 
@@ -78,7 +79,7 @@ usage() {
 # Command line arguments parsing
 
 args=":hv-:"
-while getopts "$args" optchar; do 
+while getopts "$args" optchar; do
     case "${optchar}" in
         -)
             case "${OPTARG}" in
@@ -139,7 +140,7 @@ if [ $OPTIND -eq 1 ]; then
 
 fi
 
-# Check for correct number of arguments 
+# Check for correct number of arguments
 
 if [[ "$#" -lt 2 || "$#" -gt 6 ]]; then
 
@@ -170,7 +171,7 @@ cleanHost() {
         if [ $? -eq 0 ]; then
 
             test -f "/etc/apt/apt.conf.d/10periodic" && sudo sed -i 's#APT::Periodic::Update-Package-Lists "0";#APT::Periodic::Update-Package-Lists "1";#' /etc/apt/apt.conf.d/10periodic
-            test -f "/etc/apt/apt.conf.d/20auto-upgrades" && sudo sed -i 's#APT::Periodic::Update-Package-Lists "0";#APT::Periodic::Update-Package-Lists "1";#' /etc/apt/apt.conf.d/20auto-upgrades 
+            test -f "/etc/apt/apt.conf.d/20auto-upgrades" && sudo sed -i 's#APT::Periodic::Update-Package-Lists "0";#APT::Periodic::Update-Package-Lists "1";#' /etc/apt/apt.conf.d/20auto-upgrades
             sudo rm -f "/etc/apt/apt.conf.d/disabled_automatic_updates"
             success && echo -e "Successfully reenabled automatic updates"
 
@@ -186,7 +187,7 @@ cleanHost() {
 
 conf() {
 
-    # Get working directory 
+    # Get working directory
     DIR=$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)
 
     # Installation directory
@@ -214,6 +215,12 @@ conf() {
 
     fi
 
+}
+
+# When curl was not installed and this was part of conf function then script failed as curl is installed in checks, splitting this to two parts ensure that key is downloaded correctly
+
+downloadKey() {
+
     # Decrypted authentication key file name
     decryptedKeyFile=""$installDir"/vxinstaller.key"
 
@@ -227,7 +234,7 @@ conf() {
     correctFileType="$(echo -e "binary/octet-stream" | tr -d '[[:space:]]')"
 
     # Get authentication key type
-    fileTypeNow=$(curl -A "VxStream Sandbox" -ISsk "$authKeyURL" 2>> "$logFile" | grep "Content-Type:" | awk {'print $2'})
+    fileTypeNow=$(curl -A "VxStream Sandbox" -ISsk "$authKeyURL" 2>> "$logFile" | grep -i "Content-Type:" | awk {'print $2'})
     fileTypeNow="$(echo -e "${fileTypeNow}" | tr -d '[[:space:]]')"
 
     # Get the status code of curl
@@ -235,7 +242,7 @@ conf() {
 
 }
 
-# Run mandatory checks 
+# Run mandatory checks
 
 checks() {
 
@@ -260,8 +267,8 @@ checks() {
 
     fi
 
-    # Check if curl works 
-    curl -s -S www.google.com >> "$logFile" 2>&1 
+    # Check if curl works
+    curl -s -S www.google.com >> "$logFile" 2>&1
 
     if [ $? -eq 0 ]; then
         success && echo "Curl is working"
@@ -285,7 +292,7 @@ checks() {
     fi
 
     # If curl status code for downloading authentication key was not 200, then quit
-
+    downloadKey
     if [ "$curlStatusCode" == "200" ]; then
 
         success
@@ -312,15 +319,15 @@ checks() {
         exit 1
     fi
 
-    # Get release 
+    # Get release
     codeName=$(lsb_release -cs)
     releaseDescription=$(lsb_release -ds)
 
     # Make sure the system uptime is atleast 5 minutes and the dpkg has finished it's processes
-    if [ "$codeName" == "xenial" ]; then
+    if [ "$codeName" == "bionic" ]; then
 
         success
-        echo "Distribution used: Ubuntu 16.04"
+        echo "Distribution used: Ubuntu 18.04"
 
         systemUptime=$(cat /proc/uptime | awk '{r = sprintf("%.0f",$1/60); print r}')
 
@@ -339,7 +346,7 @@ checks() {
 
         while [ "$dpkgCounter" -gt 0 ]; do
 
-            ps aux | grep '[a]pt.systemd.daily' >> "$logFile" 2>&1 
+            ps aux | grep '[a]pt.systemd.daily' >> "$logFile" 2>&1
 
             if [ $? -eq 0 ]; then
 
@@ -357,23 +364,18 @@ checks() {
 
         done
 
-    elif [ "$codeName" == "trusty" ]; then
-
-        success
-        echo -e "Distribution used: Ubuntu 14.04\n"
-
     else
 
         failure
         echo "Fatal error: release used: $releaseDescription"
-        echo "Supported releases are: Ubuntu 14.04 LTS and Ubuntu 16.04 LTS. Exiting..."
+        echo "Only Ubuntu 18.04 LTS is supported. Exiting..."
         exit 1
 
     fi
 
 }
 
-# Download authentication key, repositories and initialize VxBootstrapUI 
+# Download authentication key, repositories and initialize VxBootstrapUI
 
 main() {
 
@@ -409,8 +411,8 @@ main() {
             echo "Automatic updates are enabled at the moment"
             echo "We have to disable them during the installation so apt/dpkg won't get locked out. Sudo needed:"
 
-            sudo sed -i 's#APT::Periodic::Update-Package-Lists "1";#APT::Periodic::Update-Package-Lists "0";#' /etc/apt/apt.conf.d/10periodic && 
-            sudo sed -i 's#APT::Periodic::Update-Package-Lists "1";#APT::Periodic::Update-Package-Lists "0";#' /etc/apt/apt.conf.d/20auto-upgrades && 
+            sudo sed -i 's#APT::Periodic::Update-Package-Lists "1";#APT::Periodic::Update-Package-Lists "0";#' /etc/apt/apt.conf.d/10periodic &&
+            sudo sed -i 's#APT::Periodic::Update-Package-Lists "1";#APT::Periodic::Update-Package-Lists "0";#' /etc/apt/apt.conf.d/20auto-upgrades &&
             success && echo -e "Successfully disabled automatic updates during the installation\n" || {
 
                 failure
@@ -425,7 +427,7 @@ main() {
             echo "Automatic updates are enabled at the moment"
             echo "We have to disable them during the installation so apt/dpkg won't get locked out. Sudo needed:"
 
-            sudo sed -i 's#APT::Periodic::Update-Package-Lists "1";#APT::Periodic::Update-Package-Lists "0";#' /etc/apt/apt.conf.d/10periodic && 
+            sudo sed -i 's#APT::Periodic::Update-Package-Lists "1";#APT::Periodic::Update-Package-Lists "0";#' /etc/apt/apt.conf.d/10periodic &&
             success && echo -e "Successfully disabled automatic updates during the installation\n" || {
 
                 failure
@@ -433,14 +435,14 @@ main() {
             }
 
             # Create a file system token
-            sudo touch /etc/apt/apt.conf.d/disabled_automatic_updates  
+            sudo touch /etc/apt/apt.conf.d/disabled_automatic_updates
 
         elif [[ "$automaticUpdatesSettings2" == 1 ]]; then
 
             echo "Automatic updates are enabled at the moment"
             echo "We have to disable them during the installation so apt/dpkg won't get locked out. Sudo needed:"
 
-            sudo sed -i 's#APT::Periodic::Update-Package-Lists "1";#APT::Periodic::Update-Package-Lists "0";#' /etc/apt/apt.conf.d/20auto-upgrades && 
+            sudo sed -i 's#APT::Periodic::Update-Package-Lists "1";#APT::Periodic::Update-Package-Lists "0";#' /etc/apt/apt.conf.d/20auto-upgrades &&
             success && echo -e "Successfully disabled automatic updates during the installation\n" || {
 
                 failure
@@ -448,7 +450,7 @@ main() {
             }
 
             # Create a file system token
-            sudo touch /etc/apt/apt.conf.d/disabled_automatic_updates  
+            sudo touch /etc/apt/apt.conf.d/disabled_automatic_updates
 
         fi
 
@@ -464,7 +466,7 @@ main() {
     }
 
     # Decrypt the authentication key
-    gpg -q --yes --passphrase "$gpgPassword" --decrypt --output "$decryptedKeyFile" "$installDir"/"$authKeyFileName" 2>> "$logFile" && success && echo -e "Successfully decrypted authentication key\n" || {
+    gpg -q --batch --no-tty --yes --passphrase "$gpgPassword" --decrypt --output "$decryptedKeyFile" "$installDir"/"$authKeyFileName" 2>> "$logFile" && success && echo -e "Successfully decrypted authentication key\n" || {
 
         failure
         echo "Fatal error: failed to decrypt authentication key"
@@ -548,7 +550,7 @@ main() {
 
     fi
 
-    # Download VxBootstrap 
+    # Download VxBootstrap
     echo "Downloading VxBootstrap..." && ssh-agent bash -c "ssh-add "$installDir"/authKeyVxBootstrap >> "$logFile" 2>&1 ; git clone git@github.com:PayloadSecurity/VxBootstrap.git >> "$logFile" 2>&1"
 
     if [ $? -eq 0 ]; then
@@ -564,7 +566,7 @@ main() {
         exit 1
 
     fi
-    
+
     # Create a soft link of VxBootstrap to user home dir if it does not exist yet
     test -d $HOME/VxBootstrap
 
@@ -577,7 +579,7 @@ main() {
             echo "See $logFile for more information"
         }
     fi
-    
+
     # Set write permissions to the configuration file (used later by the UI)
     echo "Adding write permissions to the bootstrap configuration file..." && chmod 666 "$installDir"/VxBootstrap/bootstrap.cfg > /dev/null 2>> "$logFile" && success && echo -e "Successfully changed permissions\n" || {
 
@@ -586,7 +588,7 @@ main() {
         exit 1
     }
 
-    # Initialize VxBootstrapUI 
+    # Initialize VxBootstrapUI
     echo -e "Initializing VxBootstrapUI [need root rights]...\n" && sudo -k
 
     # Promt for user password until a correct password has been provided
@@ -595,15 +597,15 @@ main() {
         # If --root-password was not provided, then prompt for it
         if [ -z "$installUserPassword" ]; then
 
-            echo -n "[sudo] password for $installUser": 
+            echo -n "[sudo] password for $installUser":
             read -s installUserPassword
 
         fi
 
-        # Check if given password is correct 
+        # Check if given password is correct
         userId=$(echo "$installUserPassword" | sudo -S id -u 2> /dev/null)
 
-        if [ "$userId" = 0 ]; then 
+        if [ "$userId" = 0 ]; then
 
             declare -x installUserPassword=$installUserPassword
             echo
@@ -676,7 +678,7 @@ success() {
 # Function to print the FAILED status message
 
 failure() {
-    
+
     $moveToColumn
     echo -n "["
     $setColorFailure
