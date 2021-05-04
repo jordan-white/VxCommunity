@@ -368,7 +368,7 @@ checks() {
 
         failure
         echo "Fatal error: release used: $releaseDescription"
-        echo "Supported releases is Ubuntu 18.04 LTS. Exiting..."
+        echo "Only Ubuntu 18.04 LTS is supported. Exiting..."
         exit 1
 
     fi
